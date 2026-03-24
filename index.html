@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CarePolicy Navigator Demo</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --accent: #0f172a;
+      --green-bg: #dcfce7;
+      --green-text: #166534;
+      --amber-bg: #fef3c7;
+      --amber-text: #92400e;
+      --slate-bg: #e2e8f0;
+      --slate-text: #334155;
+      --blue-bg: #dbeafe;
+      --blue-text: #1d4ed8;
+      --rose-bg: #ffe4e6;
+      --rose-text: #be123c;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .container { max-width: 1320px; margin: 0 auto; padding: 24px; }
+    .hero, .card { background: var(--card); border: 1px solid var(--line); border-radius: 28px; box-shadow: var(--shadow); }
+    .hero { padding: 28px; margin-bottom: 20px; }
+    .hero-grid, .two-col, .grid { display: grid; gap: 20px; }
+    .hero-grid { grid-template-columns: 1.25fr .75fr; align-items: end; }
+    .metric-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .metric { border: 1px solid var(--line); border-radius: 20px; padding: 16px; }
+    .metric .label { font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+    .metric .value { margin-top: 8px; font-size: 30px; font-weight: 700; }
+    .metric .note { margin-top: 4px; font-size: 14px; color: var(--muted); }
+    .eyebrow { display: inline-flex; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: #f8fafc; color: var(--muted); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; font-weight: 600; }
+    h1, h2, h3 { margin: 0; }
+    h1 { font-size: 34px; line-height: 1.1; margin-top: 14px; }
+    .sub { max-width: 820px; margin-top: 12px; color: var(--muted); font-size: 15px; }
+    .tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .tab {
+      border: 1px solid var(--line); background: var(--card); color: var(--muted); padding: 10px 16px; border-radius: 999px; cursor: pointer;
+      font-size: 14px; font-weight: 600;
+    }
+    .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .hidden { display: none !important; }
+    .card { padding: 22px; }
+    .card-title { font-size: 22px; margin-bottom: 16px; }
+    .two-col { grid-template-columns: .95fr 1.05fr; }
+    .queue-item, .rule-box, .trace-item, .list-box, .test-row, .audit-entry {
+      border: 1px solid var(--line); border-radius: 18px; background: #fff; padding: 16px;
+    }
+    .queue-item { margin-bottom: 12px; cursor: pointer; }
+    .queue-item.active { border-color: var(--accent); background: #f8fafc; }
+    .row-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    .pill {
+      display: inline-flex; align-items: center; border: 1px solid transparent; border-radius: 999px; padding: 5px 10px;
+      font-size: 12px; font-weight: 700; gap: 6px;
+    }
+    .tone-green { background: var(--green-bg); color: var(--green-text); border-color: #bbf7d0; }
+    .tone-amber { background: var(--amber-bg); color: var(--amber-text); border-color: #fde68a; }
+    .tone-slate { background: var(--slate-bg); color: var(--slate-text); border-color: #cbd5e1; }
+    .tone-blue { background: var(--blue-bg); color: var(--blue-text); border-color: #bfdbfe; }
+    .tone-rose { background: var(--rose-bg); color: var(--rose-text); border-color: #fecdd3; }
+    .meta-grid, .form-grid, .stats-grid, .launch-grid, .govern-grid { display: grid; gap: 12px; }
+    .meta-grid { grid-template-columns: repeat(2, minmax(0,1fr)); margin-top: 12px; }
+    .form-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    label { display: block; }
+    label span { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #334155; }
+    input, select, textarea {
+      width: 100%; border: 1px solid var(--line); border-radius: 14px; padding: 11px 12px; font-size: 14px; background: #fff; color: var(--text);
+    }
+    textarea { min-height: 180px; resize: vertical; }
+    .decision-box { border: 1px solid var(--line); border-radius: 20px; padding: 16px; background: #f8fafc; }
+    .task-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .trace-list, .audit-list { display: grid; gap: 10px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    button.primary, button.secondary {
+      border-radius: 14px; padding: 11px 16px; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    button.primary { background: var(--accent); color: #fff; border: 1px solid var(--accent); }
+    button.secondary { background: #fff; color: var(--text); border: 1px solid var(--line); }
+    .policy-card { border: 1px solid var(--line); border-radius: 18px; padding: 14px; background: #fff; margin-bottom: 10px; cursor: pointer; }
+    .policy-card.active { border-color: var(--accent); background: #f8fafc; }
+    .table { overflow: hidden; border: 1px solid var(--line); border-radius: 22px; }
+    .thead, .trow { display: grid; grid-template-columns: 1.3fr .8fr .8fr .7fr 1.4fr; gap: 12px; padding: 14px 16px; }
+    .thead { background: #f8fafc; border-bottom: 1px solid var(--line); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+    .trow { border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+    .trow:last-child { border-bottom: none; }
+    .launch-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .govern-grid, .stats-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .stat-box { border: 1px solid var(--line); border-radius: 18px; background: #f8fafc; padding: 16px; }
+    .footer-note { margin-top: 22px; color: var(--muted); font-size: 13px; }
+    @media (max-width: 980px) {
+      .hero-grid, .two-col, .launch-grid { grid-template-columns: 1fr; }
+      .form-grid, .stats-grid, .govern-grid, .meta-grid { grid-template-columns: 1fr; }
+      .thead, .trow { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow">Provider-ready Product Demo</div>
+          <h1>CarePolicy Navigator</h1>
+          <p class="sub">A public demo of a healthcare workflow product that helps staff decide whether a case is covered, blocked, or missing information under CMS rules, with next-step guidance, reasoning trace, and auditability.</p>
+        </div>
+        <div class="metric-grid">
+          <div class="metric"><div class="label">Live workflow</div><div class="value">CMS LDCT</div><div class="note">Lung cancer screening eligibility</div></div>
+          <div class="metric"><div class="label">Demo mode</div><div class="value">Public</div><div class="note">Safe sample data only</div></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="tabs" id="tabs"></div>
+
+    <section id="tab-queue" class="tab-panel">
+      <div class="two-col">
+        <div class="card">
+          <h2 class="card-title">Operational Work Queue</h2>
+          <div id="queueList"></div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">Why a provider team would use this</h2>
+          <div class="stats-grid" id="kpis"></div>
+          <div class="decision-box" style="margin-top:12px;">
+            <h3>Workflow value</h3>
+            <p class="muted small">Instead of having staff manually read policy text, search the chart, and guess what to do next, the product shows a structured answer: can this patient proceed, what is missing, why, and what the next step should be.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-review" class="tab-panel hidden">
+      <div class="two-col">
+        <div class="card">
+          <h2 class="card-title">Patient & Encounter Review</h2>
+          <div id="patientHeader" class="decision-box"></div>
+          <div class="form-grid" style="margin-top:16px;">
+            <label><span>Age</span><input id="age" /></label>
+            <label><span>Pack-Years</span><input id="packYears" /></label>
+            <label><span>Asymptomatic</span><select id="asymptomatic"></select></label>
+            <label><span>Smoking Status</span><select id="smokingStatus"></select></label>
+            <label><span>Years Since Quit</span><input id="yearsSinceQuit" /></label>
+            <label><span>Provider Order</span><select id="hasOrder"></select></label>
+            <label><span>First Screening</span><select id="firstScreening"></select></label>
+            <label><span>Shared Decision Visit</span><select id="sharedDecisionVisit"></select></label>
+          </div>
+          <div class="actions" style="margin-top:16px;">
+            <button class="primary" id="recordDecisionBtn">Record Decision</button>
+            <button class="secondary" id="resetCaseBtn">Reset Case</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">Actionable Decision Card</h2>
+          <div id="decisionSummary"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-policy" class="tab-panel hidden">
+      <div class="two-col">
+        <div class="card">
+          <h2 class="card-title">Managed Policy Library</h2>
+          <div id="policyList"></div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">Policy Authoring & Governance</h2>
+          <div id="policyDetail" class="decision-box"></div>
+          <textarea id="policyText"></textarea>
+          <div class="govern-grid" id="ruleGrid" style="margin-top:14px;"></div>
+          <div class="decision-box" style="margin-top:14px;">
+            <h3>Governance checklist</h3>
+            <div class="task-list" id="governanceList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-analytics" class="tab-panel hidden">
+      <div class="two-col">
+        <div class="card">
+          <h2 class="card-title">Pilot Outcomes Dashboard</h2>
+          <div class="stats-grid" id="analyticsCards"></div>
+          <div class="decision-box" style="margin-top:12px;">
+            <h3>Operational ROI story</h3>
+            <p class="muted small">The first sales story is operational: reduce manual policy interpretation, catch missing documentation before submission, and create an audit trail that makes denials and appeals easier to manage.</p>
+          </div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">Automated Validation + Recent Audit Activity</h2>
+          <div class="table">
+            <div class="thead"><div>Test case</div><div>Expected</div><div>Actual</div><div>Status</div><div>Reasoning summary</div></div>
+            <div id="testRows"></div>
+          </div>
+          <div class="decision-box" style="margin-top:14px;">
+            <h3>Recent audit log</h3>
+            <div id="auditList" class="audit-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-launch" class="tab-panel hidden">
+      <div class="two-col">
+        <div class="card">
+          <h2 class="card-title">Implementation Blueprint</h2>
+          <div class="launch-grid" id="launchPlan"></div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">What makes this ready to sell</h2>
+          <div class="govern-grid" id="sellGrid"></div>
+        </div>
+      </div>
+    </section>
+    <div class="footer-note">Demo note: this public build uses sample workflow data only and is intended for product demos, customer conversations, and pilot storytelling.</div>
+  </div>
+
+  <script>
+    const tabs = ["Work Queue", "Patient Review", "Policy Studio", "Analytics", "Launch Plan"];
+    const policies = [
+      {
+        id: "cms-ldct-2026",
+        name: "CMS Medicare LDCT Coverage",
+        payer: "CMS",
+        domain: "Preventive Screening",
+        version: "v2026.1",
+        status: "Active",
+        lastUpdated: "2026-03-01",
+        owner: "Clinical Policy Ops",
+        logicSummary: "Covers annual low-dose CT screening when beneficiary is age 50–77, asymptomatic, has >=20 pack-years, currently smokes or quit within 15 years, has provider order, and has shared decision-making visit before first screening."
+      },
+      {
+        id: "um-radiology-demo",
+        name: "Internal Radiology Documentation Readiness",
+        payer: "Provider Internal",
+        domain: "Utilization Management",
+        version: "v1.4",
+        status: "Draft",
+        lastUpdated: "2026-03-10",
+        owner: "Revenue Cycle Ops",
+        logicSummary: "Checks ordering rationale, symptoms, prior imaging history, and referring provider documentation before authorization submission."
+      },
+      {
+        id: "payer-pa-demo",
+        name: "Commercial PA Readiness Pack",
+        payer: "Regional Commercial",
+        domain: "Prior Auth",
+        version: "v0.9",
+        status: "Draft",
+        lastUpdated: "2026-03-14",
+        owner: "Managed Care Team",
+        logicSummary: "Normalizes payer-specific submission requirements into a deterministic checklist and missing-document workflow."
+      }
+    ];
+
+    const queue = [
+      { id: "Q-1042", patientName: "Mary Ellis", mrn: "483920", dob: "1963-11-09", facility: "Northside Pulmonary", orderingProvider: "Dr. Chen", policyId: "cms-ldct-2026", priority: "High", due: "Today", status: "Ready for Review", source: "EHR Launch", data: { age: "62", asymptomatic: "yes", packYears: "35", smokingStatus: "current", yearsSinceQuit: "", hasOrder: "yes", firstScreening: "yes", sharedDecisionVisit: "yes" } },
+      { id: "Q-1043", patientName: "Samuel Ortiz", mrn: "483921", dob: "1957-07-17", facility: "Westlake Family Medicine", orderingProvider: "Dr. Rivera", policyId: "cms-ldct-2026", priority: "Medium", due: "Today", status: "Missing Documentation", source: "CDS Hook", data: { age: "68", asymptomatic: "yes", packYears: "30", smokingStatus: "former", yearsSinceQuit: "18", hasOrder: "yes", firstScreening: "no", sharedDecisionVisit: "no" } },
+      { id: "Q-1044", patientName: "Irene Patel", mrn: "483922", dob: "1967-03-02", facility: "Northside Pulmonary", orderingProvider: "Dr. Chen", policyId: "cms-ldct-2026", priority: "High", due: "Tomorrow", status: "Incomplete Intake", source: "Scheduler Intake", data: { age: "59", asymptomatic: "yes", packYears: "", smokingStatus: "current", yearsSinceQuit: "", hasOrder: "yes", firstScreening: "yes", sharedDecisionVisit: "yes" } },
+      { id: "Q-1045", patientName: "Daniel Brooks", mrn: "483923", dob: "1947-05-28", facility: "Eastview Internal Medicine", orderingProvider: "Dr. Shah", policyId: "cms-ldct-2026", priority: "Low", due: "2 days", status: "Ready for Review", source: "Manual Entry", data: { age: "79", asymptomatic: "yes", packYears: "28", smokingStatus: "current", yearsSinceQuit: "", hasOrder: "yes", firstScreening: "no", sharedDecisionVisit: "no" } }
+    ];
+
+    const rules = {
+      R0: { id: "R0", title: "Missing critical facts", logic: "missing(age) OR missing(asymptomatic) OR missing(packYears) OR missing(smokingStatus) OR missing(hasOrder)", category: "Data Quality" },
+      R1: { id: "R1", title: "Age eligibility", logic: "50 <= age <= 77", category: "Eligibility" },
+      R2: { id: "R2", title: "Asymptomatic requirement", logic: "asymptomatic = yes", category: "Clinical" },
+      R3: { id: "R3", title: "Smoking history threshold", logic: "packYears >= 20", category: "Risk" },
+      R4: { id: "R4", title: "Current smoker or recent quitter", logic: "smokingStatus = current OR (smokingStatus = former AND yearsSinceQuit <= 15)", category: "Risk" },
+      R5: { id: "R5", title: "Provider order", logic: "hasOrder = yes", category: "Documentation" },
+      R6: { id: "R6", title: "First-screen shared decision-making visit", logic: "firstScreening = no OR sharedDecisionVisit = yes", category: "Documentation" },
+      R7: { id: "R7", title: "Coverage outcome", logic: "all required criteria satisfied", category: "Terminal" }
+    };
+
+    const tests = [
+      { id: "T1", name: "Covered first-screen beneficiary", expected: "Covered", data: { age: "62", asymptomatic: "yes", packYears: "35", smokingStatus: "current", yearsSinceQuit: "", hasOrder: "yes", firstScreening: "yes", sharedDecisionVisit: "yes" } },
+      { id: "T2", name: "Former smoker quit too long ago", expected: "Not Covered", data: { age: "68", asymptomatic: "yes", packYears: "30", smokingStatus: "former", yearsSinceQuit: "18", hasOrder: "yes", firstScreening: "no", sharedDecisionVisit: "no" } },
+      { id: "T3", name: "Missing pack-years", expected: "Needs More Information", data: { age: "59", asymptomatic: "yes", packYears: "", smokingStatus: "current", yearsSinceQuit: "", hasOrder: "yes", firstScreening: "yes", sharedDecisionVisit: "yes" } },
+      { id: "T4", name: "Too old", expected: "Not Covered", data: { age: "79", asymptomatic: "yes", packYears: "28", smokingStatus: "current", yearsSinceQuit: "", hasOrder: "yes", firstScreening: "no", sharedDecisionVisit: "no" } },
+      { id: "T5", name: "First screen missing SDM visit", expected: "Not Covered", data: { age: "55", asymptomatic: "yes", packYears: "22", smokingStatus: "former", yearsSinceQuit: "7", hasOrder: "yes", firstScreening: "yes", sharedDecisionVisit: "no" } },
+      { id: "T6", name: "Repeat annual screen covered", expected: "Covered", data: { age: "70", asymptomatic: "yes", packYears: "24", smokingStatus: "former", yearsSinceQuit: "10", hasOrder: "yes", firstScreening: "no", sharedDecisionVisit: "no" } }
+    ];
+
+    const kpis = [
+      { label: "Eligible cases auto-prepared", value: "68%", note: "Within 30 days of pilot" },
+      { label: "Average review time saved", value: "4.2 min", note: "Per screening case" },
+      { label: "Missing-document capture", value: "91%", note: "Before submission" },
+      { label: "Denial reduction target", value: "18%", note: "Initial pilot goal" }
+    ];
+
+    const launchPlan = [
+      { phase: "Pilot", timeline: "0–8 weeks", focus: "1 site, 1 specialty, 1 CMS policy, embedded review queue, audit trail" },
+      { phase: "Operational rollout", timeline: "2–4 months", focus: "SMART on FHIR launch, SSO, role-based access, managed policy updates" },
+      { phase: "Enterprise expansion", timeline: "4–9 months", focus: "Multi-payer policy packs, analytics by site, admin approvals, content governance" }
+    ];
+
+    const sellPoints = [
+      ["Product shape", "Embedded review workflow, not generic AI chat."],
+      ["Buyer", "Revenue cycle leader, CMIO, population health, specialty ops."],
+      ["Core promise", "Fewer denials, faster review, better audit trace."],
+      ["Integration path", "SMART on FHIR, CDS Hooks, queue-based staff workflow."],
+      ["Commercial model", "Platform fee + workflow pack + managed policy content."],
+      ["Defensibility", "Policy content, versioning, auditability, EHR fit."],
+      ["Security package", "Role-based access, audit exports, PHI-minimizing architecture."],
+      ["Pilot ask", "1 site, 1 specialty, 1 policy family, 6–8 weeks."]
+    ];
+
+    const governance = ["Versioned rules", "Approver signoff", "Change log", "Site-specific overrides", "Audit exports", "Rollback support"];
+    const samplePolicyText = `CMS covers annual lung cancer screening with low dose computed tomography for Medicare beneficiaries only when all eligibility criteria are met. The beneficiary must be age 50 to 77, asymptomatic, have a tobacco smoking history of at least 20 pack-years, and either currently smoke or have quit within the last 15 years. The beneficiary must receive an order for lung cancer screening with LDCT. Before the first screening, the beneficiary must also receive a counseling and shared decision-making visit that documents eligibility and discussion of benefits, risks, adherence, and smoking cessation or abstinence support.`;
+
+    const state = {
+      activeTab: "Work Queue",
+      selectedQueueId: queue[0].id,
+      selectedPolicyId: policies[0].id,
+      caseData: JSON.parse(JSON.stringify(queue[0].data)),
+      auditLog: []
+    };
+
+    function normalize(v) { return String(v || "").trim().toLowerCase(); }
+    function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
+    function pillTone(outcome) { return outcome === "Covered" ? "green" : outcome === "Not Covered" ? "amber" : "slate"; }
+
+    function evaluate(data) {
+      const age = Number(data.age || 0);
+      const packYears = Number(data.packYears || 0);
+      const asymptomatic = normalize(data.asymptomatic);
+      const smokingStatus = normalize(data.smokingStatus);
+      const yearsSinceQuit = Number(data.yearsSinceQuit || 0);
+      const hasOrder = normalize(data.hasOrder);
+      const firstScreening = normalize(data.firstScreening);
+      const sharedDecisionVisit = normalize(data.sharedDecisionVisit);
+
+      const missing = ["age", "asymptomatic", "packYears", "smokingStatus", "hasOrder", "firstScreening"].filter((k) => !String(data[k] ?? "").trim());
+      if (smokingStatus === "former" && !String(data.yearsSinceQuit ?? "").trim()) missing.push("yearsSinceQuit");
+      if (firstScreening === "yes" && !String(data.sharedDecisionVisit ?? "").trim()) missing.push("sharedDecisionVisit");
+
+      if (missing.length) {
+        return {
+          outcome: "Needs More Information",
+          nextAction: "Collect missing intake fields before submission.",
+          classification: "Incomplete Beneficiary Profile",
+          reasoningSummary: `Required fields are missing: ${missing.join(", ")}.`,
+          triggeredTasks: missing.map((x) => `Collect ${x}`),
+          passedRuleIds: [],
+          failedRuleIds: ["R0"],
+          trace: [{ rule: "R0", title: rules.R0.title, result: false, explanation: `Coverage cannot be determined until these fields are present: ${missing.join(", ")}.` }]
+        };
+      }
+
+      const checks = [
+        { rule: "R1", pass: age >= 50 && age <= 77, explanation: age >= 50 && age <= 77 ? `Age ${age} is within range.` : `Age ${age} is outside 50–77.`, task: "Confirm age eligibility or route out of workflow" },
+        { rule: "R2", pass: asymptomatic === "yes", explanation: asymptomatic === "yes" ? "Beneficiary is asymptomatic." : "Symptoms documented, which fails the CMS criterion.", task: "Validate screening intent versus diagnostic workup" },
+        { rule: "R3", pass: packYears >= 20, explanation: packYears >= 20 ? `${packYears} pack-years satisfies threshold.` : `${packYears} pack-years is below threshold.`, task: "Update smoking history or stop submission" },
+        { rule: "R4", pass: smokingStatus === "current" || (smokingStatus === "former" && yearsSinceQuit <= 15), explanation: smokingStatus === "current" ? "Current smoker satisfies criterion." : (smokingStatus === "former" && yearsSinceQuit <= 15 ? `Former smoker quit ${yearsSinceQuit} years ago, within 15-year window.` : smokingStatus === "former" ? `Former smoker quit ${yearsSinceQuit} years ago, beyond 15-year window.` : "Smoking status fails CMS criterion."), task: "Verify quit date or stop submission" },
+        { rule: "R5", pass: hasOrder === "yes", explanation: hasOrder === "yes" ? "Provider order is present." : "Provider order is missing.", task: "Obtain provider order" },
+        { rule: "R6", pass: firstScreening !== "yes" || sharedDecisionVisit === "yes", explanation: firstScreening !== "yes" ? "Repeat screening does not require first-visit SDM check in this workflow." : sharedDecisionVisit === "yes" ? "Shared decision-making visit documented." : "First screening requires shared decision-making documentation.", task: "Document shared decision-making visit" }
+      ];
+
+      const failed = checks.filter(c => !c.pass);
+      const passed = checks.filter(c => c.pass);
+      if (failed.length) {
+        return {
+          outcome: "Not Covered",
+          nextAction: failed[0].task,
+          classification: `Failed ${failed.map(f => f.rule).join(", ")}`,
+          reasoningSummary: `Coverage is blocked because ${failed.length} criterion${failed.length > 1 ? " are" : " is"} not satisfied.`,
+          triggeredTasks: failed.map(f => f.task),
+          passedRuleIds: passed.map(p => p.rule),
+          failedRuleIds: failed.map(f => f.rule),
+          trace: checks.map(c => ({ rule: c.rule, title: rules[c.rule].title, result: c.pass, explanation: c.explanation }))
+        };
+      }
+      return {
+        outcome: "Covered",
+        nextAction: "Proceed to scheduling or claim preparation.",
+        classification: firstScreening === "yes" ? "Initial LDCT Screening Covered" : "Annual LDCT Screening Covered",
+        reasoningSummary: "All required CMS criteria are satisfied.",
+        triggeredTasks: ["Send scheduling-ready signal", "Write audit record", "Prepare patient instructions"],
+        passedRuleIds: [...passed.map(p => p.rule), "R7"],
+        failedRuleIds: [],
+        trace: checks.map(c => ({ rule: c.rule, title: rules[c.rule].title, result: c.pass, explanation: c.explanation })).concat([{ rule: "R7", title: rules.R7.title, result: true, explanation: "All active criteria passed, so the case is covered." }])
+      };
+    }
+
+    function metrics() {
+      const results = queue.map(q => evaluate(q.data));
+      const automated = tests.map(t => ({ ...t, actual: evaluate(t.data).outcome }));
+      const passRate = automated.filter(t => t.actual === t.expected).length;
+      return {
+        queueCovered: results.filter(r => r.outcome === "Covered").length,
+        queueBlocked: results.filter(r => r.outcome === "Not Covered").length,
+        queueIncomplete: results.filter(r => r.outcome === "Needs More Information").length,
+        avgRulesPassed: avg(results.map(r => r.passedRuleIds.length)).toFixed(1),
+        avgTasks: avg(results.map(r => r.triggeredTasks.length)).toFixed(1),
+        testPassRate: `${passRate}/${automated.length}`,
+        automated
+      };
+    }
+
+    function optionMarkup(opts, selected) {
+      return ['<option value="">Unknown</option>'].concat(opts.map(o => `<option value="${o}" ${selected === o ? 'selected' : ''}>${o}</option>`)).join('');
+    }
+
+    function renderTabs() {
+      const el = document.getElementById('tabs');
+      el.innerHTML = tabs.map(tab => `<button class="tab ${state.activeTab === tab ? 'active' : ''}" data-tab="${tab}">${tab}</button>`).join('');
+      [...el.querySelectorAll('.tab')].forEach(btn => btn.onclick = () => { state.activeTab = btn.dataset.tab; render(); });
+    }
+
+    function renderQueue() {
+      const list = document.getElementById('queueList');
+      list.innerHTML = queue.map(item => {
+        const preview = evaluate(item.data);
+        return `<div class="queue-item ${state.selectedQueueId === item.id ? 'active' : ''}" data-id="${item.id}">
+          <div class="row-head">
+            <div><div style="font-weight:700;">${item.patientName}</div><div class="muted small">${item.id} · MRN ${item.mrn} · ${item.facility}</div></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <span class="pill tone-blue">${item.priority}</span>
+              <span class="pill tone-${pillTone(preview.outcome)}">${preview.outcome}</span>
+            </div>
+          </div>
+          <div class="meta-grid">
+            <div>Provider: ${item.orderingProvider}</div><div>Source: ${item.source}</div>
+            <div>Status: ${item.status}</div><div>Due: ${item.due}</div>
+          </div>
+          <div class="muted small" style="margin-top:10px;">Next action: ${preview.nextAction}</div>
+        </div>`;
+      }).join('');
+      [...list.querySelectorAll('.queue-item')].forEach(el => el.onclick = () => {
+        const item = queue.find(q => q.id === el.dataset.id);
+        state.selectedQueueId = item.id;
+        state.selectedPolicyId = item.policyId;
+        state.caseData = JSON.parse(JSON.stringify(item.data));
+        state.activeTab = 'Patient Review';
+        render();
+      });
+
+      document.getElementById('kpis').innerHTML = kpis.map(k => `<div class="stat-box"><div class="small muted" style="text-transform:uppercase;letter-spacing:.14em;">${k.label}</div><div style="font-size:28px;font-weight:700;margin-top:8px;">${k.value}</div><div class="muted small" style="margin-top:4px;">${k.note}</div></div>`).join('');
+    }
+
+    function bindSelect(id, options) {
+      const el = document.getElementById(id);
+      el.innerHTML = optionMarkup(options, state.caseData[id]);
+      el.onchange = e => { state.caseData[id] = e.target.value; renderReviewOnly(); };
+    }
+
+    function renderReviewOnly() {
+      const item = queue.find(q => q.id === state.selectedQueueId) || queue[0];
+      document.getElementById('patientHeader').innerHTML = `<div class="row-head"><div><div style="font-size:20px;font-weight:700;">${item.patientName}</div><div class="muted small">MRN ${item.mrn} · DOB ${item.dob} · ${item.facility}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><span class="pill tone-blue">${item.source}</span><span class="pill tone-${pillTone(evaluate(state.caseData).outcome)}">${evaluate(state.caseData).outcome}</span></div></div>`;
+      ['age','packYears','yearsSinceQuit'].forEach(id => {
+        document.getElementById(id).value = state.caseData[id] ?? '';
+        document.getElementById(id).oninput = e => { state.caseData[id] = e.target.value; renderReviewOnly(); };
+      });
+      bindSelect('asymptomatic', ['yes', 'no']);
+      bindSelect('smokingStatus', ['current', 'former', 'never']);
+      bindSelect('hasOrder', ['yes', 'no']);
+      bindSelect('firstScreening', ['yes', 'no']);
+      bindSelect('sharedDecisionVisit', ['yes', 'no']);
+
+      const decision = evaluate(state.caseData);
+      document.getElementById('decisionSummary').innerHTML = `
+        <div class="decision-box">
+          <div class="small muted" style="text-transform:uppercase;letter-spacing:.14em;">Decision</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;"><span class="pill tone-${pillTone(decision.outcome)}">${decision.outcome}</span><span class="muted">${decision.reasoningSummary}</span></div>
+        </div>
+        <div class="list-box" style="margin-top:12px;"><h3>Next recommended action</h3><p class="muted small">${decision.nextAction}</p></div>
+        <div class="list-box" style="margin-top:12px;"><h3>Triggered work items</h3><div class="task-list">${decision.triggeredTasks.map(t => `<span class="pill tone-slate">${t}</span>`).join('')}</div></div>
+        <div class="list-box" style="margin-top:12px;"><h3>Reasoning trace</h3><div class="trace-list">${decision.trace.map(t => `<div class="trace-item"><div class="row-head"><div style="font-weight:700;">${t.rule} · ${t.title}</div><span class="pill tone-${t.result ? 'green' : 'amber'}">${t.result ? 'Pass' : 'Fail'}</span></div><div class="muted small" style="margin-top:8px;">${t.explanation}</div></div>`).join('')}</div></div>`;
+    }
+
+    function renderPolicy() {
+      const list = document.getElementById('policyList');
+      list.innerHTML = policies.map(policy => `<div class="policy-card ${state.selectedPolicyId === policy.id ? 'active' : ''}" data-id="${policy.id}"><div class="row-head"><div><div style="font-weight:700;">${policy.name}</div><div class="muted small">${policy.payer} · ${policy.domain}</div></div><span class="pill tone-${policy.status === 'Active' ? 'green' : 'blue'}">${policy.status}</span></div><div class="meta-grid"><div>Version: ${policy.version}</div><div>Owner: ${policy.owner}</div><div>Updated: ${policy.lastUpdated}</div><div>ID: ${policy.id}</div></div></div>`).join('');
+      [...list.querySelectorAll('.policy-card')].forEach(el => el.onclick = () => { state.selectedPolicyId = el.dataset.id; renderPolicy(); });
+      const policy = policies.find(p => p.id === state.selectedPolicyId) || policies[0];
+      document.getElementById('policyDetail').innerHTML = `<div class="row-head"><div><div style="font-size:20px;font-weight:700;">${policy.name}</div><div class="muted small">${policy.logicSummary}</div></div><div style="display:flex;gap:8px;"><span class="pill tone-blue">${policy.version}</span><span class="pill tone-${policy.status === 'Active' ? 'green' : 'amber'}">${policy.status}</span></div></div>`;
+      const txt = document.getElementById('policyText');
+      txt.value = samplePolicyText;
+      document.getElementById('ruleGrid').innerHTML = Object.values(rules).map(rule => `<div class="rule-box"><div class="row-head"><div style="font-weight:700;">${rule.id} · ${rule.title}</div><span class="pill tone-slate">${rule.category}</span></div><div class="muted small" style="margin-top:8px;">${rule.logic}</div></div>`).join('');
+      document.getElementById('governanceList').innerHTML = governance.map(x => `<span class="pill tone-slate">${x}</span>`).join('');
+    }
+
+    function renderAnalytics() {
+      const m = metrics();
+      const cards = [
+        { label: 'Rule pack accuracy', value: `${Math.round((m.automated.filter(t => t.actual === t.expected).length / m.automated.length) * 100)}%`, note: 'Automated benchmark tests' },
+        { label: 'Avg rules passed', value: m.avgRulesPassed, note: 'Across active queue' },
+        { label: 'Avg tasks generated', value: m.avgTasks, note: 'Per reviewed case' },
+        { label: 'Audit records', value: String(state.auditLog.length), note: 'Current session' }
+      ];
+      document.getElementById('analyticsCards').innerHTML = cards.map(c => `<div class="stat-box"><div class="small muted" style="text-transform:uppercase;letter-spacing:.14em;">${c.label}</div><div style="font-size:28px;font-weight:700;margin-top:8px;">${c.value}</div><div class="muted small" style="margin-top:4px;">${c.note}</div></div>`).join('');
+      document.getElementById('testRows').innerHTML = m.automated.map(t => `<div class="trow"><div style="font-weight:700;">${t.name}</div><div><span class="pill tone-${pillTone(t.expected)}">${t.expected}</span></div><div><span class="pill tone-${pillTone(t.actual)}">${t.actual}</span></div><div style="color:${t.actual === t.expected ? '#15803d' : '#be123c'};font-weight:700;">${t.actual === t.expected ? 'Pass' : 'Fail'}</div><div class="muted small">${evaluate(t.data).reasoningSummary}</div></div>`).join('');
+      document.getElementById('auditList').innerHTML = state.auditLog.length ? state.auditLog.map(a => `<div class="audit-entry"><div class="row-head"><div><div style="font-weight:700;">${a.patient} · ${a.queueId}</div><div class="muted small">${a.nextAction}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><span class="pill tone-${pillTone(a.outcome)}">${a.outcome}</span><span class="pill tone-slate">${a.timestamp}</span></div></div></div>`).join('') : `<div class="muted small">No audit entries yet. Review a patient and record a decision.</div>`;
+    }
+
+    function renderLaunch() {
+      document.getElementById('launchPlan').innerHTML = launchPlan.map(item => `<div class="stat-box"><div class="row-head"><div style="font-weight:700;">${item.phase}</div><span class="pill tone-blue">${item.timeline}</span></div><div class="muted small" style="margin-top:8px;">${item.focus}</div></div>`).join('');
+      document.getElementById('sellGrid').innerHTML = sellPoints.map(([title, detail]) => `<div class="stat-box"><div style="font-weight:700;">${title}</div><div class="muted small" style="margin-top:6px;">${detail}</div></div>`).join('');
+    }
+
+    function render() {
+      renderTabs();
+      ['queue','review','policy','analytics','launch'].forEach(id => document.getElementById(`tab-${id}`).classList.add('hidden'));
+      const panelId = state.activeTab === 'Work Queue' ? 'queue' : state.activeTab === 'Patient Review' ? 'review' : state.activeTab === 'Policy Studio' ? 'policy' : state.activeTab === 'Analytics' ? 'analytics' : 'launch';
+      document.getElementById(`tab-${panelId}`).classList.remove('hidden');
+      renderQueue();
+      renderReviewOnly();
+      renderPolicy();
+      renderAnalytics();
+      renderLaunch();
+    }
+
+    document.getElementById('recordDecisionBtn').onclick = () => {
+      const item = queue.find(q => q.id === state.selectedQueueId) || queue[0];
+      const result = evaluate(state.caseData);
+      state.auditLog.unshift({ id: `${Date.now()}`, patient: item.patientName, queueId: item.id, outcome: result.outcome, nextAction: result.nextAction, timestamp: new Date().toLocaleTimeString() });
+      state.auditLog = state.auditLog.slice(0, 10);
+      renderAnalytics();
+      alert('Decision recorded in demo audit log.');
+    };
+    document.getElementById('resetCaseBtn').onclick = () => {
+      const item = queue.find(q => q.id === state.selectedQueueId) || queue[0];
+      state.caseData = JSON.parse(JSON.stringify(item.data));
+      renderReviewOnly();
+    };
+
+    render();
+  </script>
+</body>
+</html>
